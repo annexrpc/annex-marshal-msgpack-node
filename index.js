@@ -4,18 +4,32 @@
 
 var msgpack = require('msgpack');
 
-var TYPES = {
-  call: 0,
-  cast: 1,
-  response: 0,
-  error: 1
+exports.call = function(msgid, action, args, meta) {
+  return typeof meta === 'undefined' ?
+    exports.encode([0, msgid, action, args]) :
+    exports.encode([0, msgid, action, args, meta]);
 };
 
-exports.encode = function(type, msgid, mod, fun, args) {
-  var typenum = TYPES[type];
-  if (typeof typenum === 'undefined') throw new Error('unrecognized type ' + type);
-  if (arguments.length === 3) return msgpack.pack([TYPES[type], msgid, mod]);
-  return msgpack.pack([TYPES[type], msgid, mod, fun, args]);
+exports.cast = function(msgid, action, args, meta) {
+  return typeof meta === 'undefined' ?
+    exports.encode([1, msgid, action, args]) :
+    exports.encode([1, msgid, action, args, meta]);
+};
+
+exports.response = function(msgid, response, meta) {
+  return typeof meta === 'undefined' ?
+    exports.encode([2, msgid, response]) :
+    exports.encode([2, msgid, response, meta]);
+};
+
+exports.error = function(msgid, code, error, meta) {
+  return typeof meta === 'undefined' ?
+    exports.encode([3, msgid, code, error]) :
+    exports.encode([3, msgid, code, error, meta]);
+};
+
+exports.encode = function(args) {
+  return msgpack.pack(args);
 };
 
 exports.decode = function(bin) {
